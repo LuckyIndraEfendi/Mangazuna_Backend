@@ -1,43 +1,48 @@
 import { gotScraping } from "got-scraping";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import userAgent from "../helpers/userAgent.js";
 import { baseURL } from "../helpers/apiKey.js";
-
+import axios from "axios";
+import request from "request";
 export const getPopularManga = async (req, res) => {
   try {
-    const response = await gotScraping.get(`${baseURL}/komik-terbaru`, {
-      headers: userAgent,
-    });
-    const html = response.body;
-
-    const $ = cheerio.load(html);
-
-    let popularManga = [];
-    $("#sidebar > div > aside:nth-child(1) > div > div > div > ul > li").each(
-      (i, el) => {
-        popularManga.push({
-          id: $(el).find("div.leftseries > div").text().replace(/\s+/g, " "),
-          title: $(el).find("div.leftseries > h4 > a").text(),
-          image: $(el)
-            .find("div.imgseries > a > img")
-            .attr("data-lazy-src")
-            .replace(/\?width=\d+&height=\d+/g, ""),
-          rating: $(el).find("div.leftseries > span.loveviews").text(),
-          details_id: `/details/${$(el)
-            .find("div.imgseries > a")
-            .attr("href")
-            .replace(`${baseURL}/komik`, "")
-            .replace("/", "")
-            .replace("/", "")}`,
-        });
+    const options = {
+      url: `${baseURL}/?s=${req.query.q}`,
+    };
+    // const response = await axios.get(`${baseURL}/?s=${req.query.q}`, {
+    //   headers: userAgent,
+    // });
+    request(options, (error, response, body) => {
+      if (error) {
+        res.status(500).json({ statusCode: 500, message: error.message });
       }
-    );
-
-    res.json({
-      statusCode: 200,
-      message: "success",
-      data: popularManga,
-      total_items: popularManga.length,
+      const $ = cheerio.load(body);
+      let popularManga = [];
+      $("#sidebar > div > aside:nth-child(1) > div > div > div > ul > li").each(
+        (i, el) => {
+          popularManga.push({
+            id: $(el).find("div.leftseries > div").text().replace(/\s+/g, " "),
+            title: $(el).find("div.leftseries > h4 > a").text(),
+            image: $(el)
+              .find("div.imgseries > a > img")
+              .attr("data-lazy-src")
+              .replace(/\?width=\d+&height=\d+/g, ""),
+            rating: $(el).find("div.leftseries > span.loveviews").text(),
+            details_id: `/details/${$(el)
+              .find("div.imgseries > a")
+              .attr("href")
+              .replace(`${baseURL}/komik`, "")
+              .replace("/", "")
+              .replace("/", "")}`,
+          });
+        }
+      );
+      res.json({
+        statusCode: 200,
+        message: "success",
+        data: popularManga,
+        total_items: popularManga.length,
+      });
     });
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message });
@@ -53,7 +58,6 @@ export const getAllManga = async (req, res) => {
       }
     );
     const html = response.body;
-
     const $ = cheerio.load(html);
     const manga = [];
     let hasPrev = true;

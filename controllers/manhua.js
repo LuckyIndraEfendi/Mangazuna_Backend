@@ -1,5 +1,5 @@
 import { gotScraping } from "got-scraping";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import userAgent from "../helpers/userAgent.js";
 import { baseURL } from "../helpers/apiKey.js";
 export const getAllManhua = async (req, res) => {

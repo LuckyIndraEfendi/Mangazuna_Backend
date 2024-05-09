@@ -1,15 +1,17 @@
 import { gotScraping } from "got-scraping";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import userAgent from "../helpers/userAgent.js";
 import { baseURL } from "../helpers/apiKey.js";
+import axios from "axios";
 export const searchAll = async (req, res) => {
   try {
-    const response = await gotScraping.get(`${baseURL}/?s=${req.query.q}`, {
+    // const response = await gotScraping.get(`${baseURL}/?s=${req.query.q}`, {
+    //   headers: userAgent,
+    // });
+    const response = await axios.get(`${baseURL}/?s=${req.query.q}`, {
       headers: userAgent,
     });
-
-    const html = response.body;
-
+    const html = response.data;
     const $ = cheerio.load(html);
     const search = [];
     $("#content > div.postbody > section > div.film-list > div").each(
