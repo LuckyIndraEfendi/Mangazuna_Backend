@@ -25,7 +25,7 @@ export const getPopularManga = async (req, res) => {
             title: $(el).find("div.leftseries > h4 > a").text(),
             image: $(el)
               .find("div.imgseries > a > img")
-              .attr("data-lazy-src")
+              .attr("src")
               .replace(/\?width=\d+&height=\d+/g, ""),
             rating: $(el).find("div.leftseries > span.loveviews").text(),
             details_id: `/details/${$(el)

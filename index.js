@@ -8,9 +8,13 @@ import manhwa from "./routes/manhwa.js";
 import search from "./routes/search.js";
 const PORT = process.env.PORT || 5000;
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+  cors({
+    credentials: true,
+    methods: ["GET"],
+  })
+);
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send({
