@@ -51,64 +51,66 @@ export const getPopularManga = async (req, res) => {
 
 export const getAllManga = async (req, res) => {
   try {
-    const response = await gotScraping.get(
-      `${baseURL}/baca-manga/page/${req.query.page || 1}`,
-      {
-        headers: userAgent,
-      }
-    );
-    const html = response.body;
-    const $ = cheerio.load(html);
-    const manga = [];
-    let hasPrev = true;
-    let hasNext = true;
-    const prev = $(
-      "#content > div.postbody > section.whites > div.widget-body > div > div > div.pagination > a.prev.page-numbers"
-    )
-      .text()
-      .replace("«", "");
-    const next = $(
-      "#content > div.postbody > section.whites > div.widget-body > div > div > div.pagination > a.next.page-numbers"
-    )
-      .text()
-      .replace("Berikutnya ", "");
-    $(
-      "#content > div.postbody > section.whites > div.widget-body > div > div > div.listupd > div"
-    ).each((i, el) => {
-      manga.push({
-        title: $(el).find("div > div > a > div > h4").text(),
-        image: $(el).find("div > a > div > img").attr("data-lazy-src"),
-        details_id: `/details/${$(el)
-          .find(" div > div > a")
-          .attr("href")
-          .replace(`${baseURL}/komik`, "")
-          .replace("/", "")
-          .replace("/", "")}`,
-        rating: $(el).find("div:nth-child(1) > div > div > div > i").text(),
-      });
-    });
-    if (manga.length === 0) {
-      hasNext = false;
-      return res.json({
-        statusCode: 404,
-        message: "Not Found",
-      });
-    } else if (prev === "") {
-      hasPrev = false;
-    }
-    if (next === "»") {
-      hasNext = true;
-    } else {
-      hasNext = false;
-    }
+    const options = {
+      url: `${baseURL}/baca-manga/page/${req.query.page || 1}`,
+    };
 
-    res.json({
-      statusCode: 200,
-      message: "Get All Manga",
-      data: manga,
-      total_items: manga.length,
-      has_next: hasNext,
-      has_prev: hasPrev,
+    request(options, (error, response, body) => {
+      if (error) {
+        res.status(500).json({ statusCode: 500, message: error.message });
+      }
+      const $ = cheerio.load(body);
+      const manga = [];
+      let hasPrev = true;
+      let hasNext = true;
+      const prev = $(
+        "#content > div.postbody > section.whites > div.widget-body > div > div > div.pagination > a.prev.page-numbers"
+      )
+        .text()
+        .replace("«", "");
+      const next = $(
+        "#content > div.postbody > section.whites > div.widget-body > div > div > div.pagination > a.next.page-numbers"
+      )
+        .text()
+        .replace("Berikutnya ", "");
+      $(
+        "#content > div.postbody > section.whites > div.widget-body > div > div > div.listupd > div"
+      ).each((i, el) => {
+        manga.push({
+          title: $(el).find("div > div > a > div > h4").text(),
+          image: $(el).find("div > a > div > img").attr("data-lazy-src"),
+          details_id: `/details/${$(el)
+            .find(" div > div > a")
+            .attr("href")
+            .replace(`${baseURL}/komik`, "")
+            .replace("/", "")
+            .replace("/", "")}`,
+          rating: $(el).find("div:nth-child(1) > div > div > div > i").text(),
+        });
+      });
+      if (manga.length === 0) {
+        hasNext = false;
+        return res.json({
+          statusCode: 404,
+          message: "Not Found",
+        });
+      } else if (prev === "") {
+        hasPrev = false;
+      }
+      if (next === "»") {
+        hasNext = true;
+      } else {
+        hasNext = false;
+      }
+
+      res.json({
+        statusCode: 200,
+        message: "Get All Manga",
+        data: manga,
+        total_items: manga.length,
+        has_next: hasNext,
+        has_prev: hasPrev,
+      });
     });
   } catch (err) {
     res.status(500).json({ statusCode: 500, message: err.message });
